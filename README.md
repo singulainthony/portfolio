@@ -1,9 +1,10 @@
 # Anthony Carnevale — Portfolio
 
-Live site: **https://singulainthony.github.io/portfolio/**
+Live site: **https://anthonycarnevale.ca**
 
 This repository contains the **built static output** of the portfolio site (Astro 6 + Three.js),
-served by GitHub Pages from the `main` branch root.
+served by GitHub Pages from the `main` branch root on the custom domain `anthonycarnevale.ca`.
+The old address, https://singulainthony.github.io/portfolio/, redirects there.
 
 ## Source of truth
 
@@ -16,41 +17,29 @@ The editable source lives locally at:
 That directory is an Astro project. It is **not** committed here — this repo holds only the
 compiled `dist/` output.
 
-## Why paths are rewritten
-
-GitHub Pages serves this repo from a subpath (`/portfolio/`), but the Astro build emits
-root-absolute URLs (`/hi`, `/_astro/...`). Those would 404 at the subpath. So the build is
-post-processed to prefix every root-absolute `href`, `src`, `srcset`, `poster`, `content`
-and CSS `url(/...)` reference with `/portfolio`.
-
-The rewrite script lives at:
-
-```
-~/.hermes/profiles/apple-job/scripts/deploy-portfolio.py
-```
-
 ## Redeploying after a content change
+
+The site is served from the domain root, so the plain build works as-is. No path rewriting is needed
+(the old `/portfolio/` rewrite script is no longer used).
 
 ```bash
 cd "/Users/anonymouspro/Dev & Such/Portfolio-Site"
 npm run build
 
-python3 ~/.hermes/profiles/apple-job/scripts/deploy-portfolio.py \
-  "/Users/anonymouspro/Dev & Such/Portfolio-Site/dist" \
-  ~/.hermes/profiles/apple-job/cache/scratch/pf-out2 \
-  /portfolio/ \
-  https://singulainthony.github.io/portfolio
-
-cd ~/.hermes/profiles/apple-job/cache/scratch/pf-out2
+# from a clone of this repo:
+rsync -a --delete --exclude .git --exclude README.md "/Users/anonymouspro/Dev & Such/Portfolio-Site/dist/" ./
 touch .nojekyll
 git add -A && git commit -m "Update site" && git push
 ```
 
-**Do not skip the rewrite step.** A plain `npm run build` + push will break every link and
-image on the live site, because the emitted URLs assume the domain root.
+`CNAME` comes from the Astro project's `public/CNAME`, so it is included in every build. Don't delete it,
+or GitHub Pages will drop the custom domain.
 
 ## Pages configuration
 
 - Source: `main` branch, `/` (root)
+- Custom domain: `anthonycarnevale.ca`, HTTPS enforced
+- DNS (GoDaddy): four `A` records for `@` → 185.199.108.153 / .109.153 / .110.153 / .111.153,
+  and `www` CNAME → `singulainthony.github.io`
 - Build type: legacy (no Actions workflow — this is pre-built output)
 - `.nojekyll` present so Astro's `_astro/` directory is served
